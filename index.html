@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>作品展示幻燈片</title>
+  <style>
+    /* 幻燈片核心樣式（不變） */
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .slideshow { position: relative; width: 100%; max-width: 800px; height: 200px; background: #111; overflow: hidden; border-radius: 6px; margin: 40px auto; }
+    .slides { position: relative; width: 100%; height: 100%; }
+    .slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .8s ease; pointer-events: none; }
+    .slide[aria-hidden="false"] { opacity: 1; pointer-events: auto; }
+    .slide img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+    .slide[aria-hidden="false"] img { transform: scale(1.02); }
+    .ctrl { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,.45); color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+    .ctrl:hover { background: rgba(0,0,0,.6); }
+    .prev { left: 12px; } .next { right: 12px; }
+    .controls { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; gap: 8px; z-index: 12; }
+    .btn.play { background: rgba(0,0,0,.45); color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+    .btn.play[aria-pressed="true"] { background: #007acc; }
+    .dots { display: flex; gap: 8px; }
+    .dots button { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.5); border: none; cursor: pointer; }
+    .dots button[aria-selected="true"] { background: #007acc; box-shadow: 0 0 0 3px rgba(0,122,204,.12); }
+    @media (max-width: 480px) { .slideshow { height: 160px; } .ctrl { width: 34px; height: 34px; } }
+    @media (prefers-reduced-motion: reduce) { .slide, .slide img { transition: none !important; transform: none !important; } }
+  </style>
+</head>
+<body>
+
+  <!-- 
+    1. 在專案根目錄建立 assets/ 資料夾 
+    2. 將圖片上傳到 assets/，命名為 image1.jpg、image2.jpg
+  -->
+  <div class="slideshow"
+       aria-roledescription="carousel"
+       aria-label="作品展示"
+       data-autoplay="true"
+       data-interval="4000">
+    <div class="slides" role="list">
+
+      <!-- Slide 1：概念視覺 -->
+      <div class="slide" role="listitem" aria-hidden="false">
+        <!-- data-src 指向 assets/image1.jpg -->
+        <img data-src="assets/image1.jpg" alt="照片一：日本海外實習">
+      </div>
+
+      <!-- Slide 2：界面設計 -->
+      <div class="slide" role="listitem" aria-hidden="true">
+        <!-- data-src 指向 assets/image2.jpg -->
+        <img data-src="assets/image2.jpg" alt="照片二：三詩達研究所">
+      </div>
+
+      <!-- 如需更多 slide，請複製上方區塊並修改 data-src 與 alt -->
+    </div>
+
+    <!-- 左右切換按鈕 -->
+    <button class="ctrl prev" aria-label="上一張">‹</button>
+    <button class="ctrl next" aria-label="下一張">›</button>
+
+    <!-- 播放/暫停 與 頁碼導航 -->
+    <div class="controls">
+      <button class="btn play" aria-pressed="false" aria-label="播放/暫停">▶</button>
+      <div class="dots" role="tablist" aria-label="幻燈片導航"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const root = document.querySelector('.slideshow');
+      if (!root) return;
+      const slides = Array.from(root.querySelectorAll('.slide'));
+      const dotsContainer = root.querySelector('.dots');
+      const prevBtn = root.querySelector('.prev');
+      const nextBtn = root.querySelector('.next');
+      const playToggle = root.querySelector('.btn.play');
+      const intervalMs = +root.dataset.interval || 4000;
+      let current = 0, timer, isPlaying = root.dataset.autoplay === 'true';
+
+      // 產生底部 dots
+      slides.forEach((_, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+        btn.setAttribute('aria-label', `切到第 ${i + 1} 張`);
+        btn.tabIndex = i === 0 ? 0 : -1;
+        btn.addEventListener('click', () => goTo(i, true));
+        dotsContainer.appendChild(btn);
+      });
+      const dots = Array.from(dotsContainer.children);
+
+      // Lazy-load 圖片
+      const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.src = entry.target.dataset.src;
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { root: root.querySelector('.slides'), threshold: 0.1 });
+      slides.forEach(s => {
+        const img = s.querySelector('img');
+        if (img) io.observe(img);
+      });
+
+      function update() {
+        slides.forEach((s, i) => s.setAttribute('aria-hidden', i === current ? 'false' : 'true'));
+        dots.forEach((d, i) => {
+          d.setAttribute('aria-selected', i === current ? 'true' : 'false');
+          d.tabIndex = i === current ? 0 : -1;
+        });
+      }
+      function goTo(idx, user) {
+        current = (idx + slides.length) % slides.length;
+        update();
+        if (user && isPlaying) pause();
+      }
+      function next() { goTo(current + 1); }
+      function prev() { goTo(current - 1); }
+
+      function play() {
+        timer = setInterval(next, intervalMs);
+        isPlaying = true;
+        playToggle.setAttribute('aria-pressed', 'true');
+        playToggle.textContent = '⏸';
+      }
+      function pause() {
+        clearInterval(timer);
+        isPlaying = false;
+        playToggle.setAttribute('aria-pressed', 'false');
+        playToggle.textContent = '▶';
+      }
+
+      playToggle.addEventListener('click', () => isPlaying ? pause() : play());
+      prevBtn.addEventListener('click', prev);
+      nextBtn.addEventListener('click', next);
+
+      root.addEventListener('keydown', e => {
+        if (['ArrowLeft','ArrowRight',' ','Spacebar'].includes(e.key)) {
+          e.preventDefault();
+          if (e.key === 'ArrowLeft') prev();
+          if (e.key === 'ArrowRight') next();
+          if ([' ','Spacebar'].includes(e.key)) isPlaying ? pause() : play();
+        }
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && isPlaying) pause();
+      });
+
+      root.tabIndex = 0;
+      update();
+      isPlaying ? play() : pause();
+    });
+  </script>
+
+</body>
+</html>
