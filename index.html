@@ -3,69 +3,208 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>作品展示幻燈片</title>
+  <title>作品展示幻燈片 - 部落格風格</title>
   <style>
     /* 幻燈片核心樣式（不變） */
     * { box-sizing: border-box; }
-    body { margin: 0; }
-    .slideshow { position: relative; width: 100%; max-width: 800px; height: 200px; background: #111; overflow: hidden; border-radius: 6px; margin: 40px auto; }
+    body {
+      margin: 0;
+      background: #f6f8fa;
+      font-family: "Noto Sans TC", "Segoe UI", "微軟正黑體", Arial, sans-serif;
+      color: #23272f;
+      line-height: 1.7;
+    }
+    .blog-container {
+      max-width: 880px;
+      margin: 40px auto 60px auto;
+      background: #fff;
+      box-shadow: 0 6px 24px 0 rgba(30,36,50,0.07);
+      border-radius: 9px;
+      overflow: hidden;
+      padding: 0 0 36px 0;
+      border: 1px solid #e9ecef;
+    }
+    header.blog-header {
+      padding: 40px 36px 20px 36px;
+      background: linear-gradient(90deg, #007acc 0%, #00c6ae 100%);
+      color: #fff;
+    }
+    .blog-title {
+      margin: 0;
+      font-size: 2.4rem;
+      letter-spacing: 1px;
+    }
+    .blog-meta {
+      font-size: 1rem;
+      margin-top: 12px;
+      color: #e6f2fb;
+      opacity: 0.87;
+      letter-spacing: 0.1em;
+    }
+    .blog-content {
+      padding: 36px;
+      font-size: 1.18rem;
+      background: #fff;
+    }
+    .slideshow {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      height: 260px;
+      background: #111;
+      overflow: hidden;
+      border-radius: 8px;
+      margin: 36px auto 28px auto;
+      box-shadow: 0 2px 12px 0 rgba(30,36,50,0.06);
+    }
     .slides { position: relative; width: 100%; height: 100%; }
-    .slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .8s ease; pointer-events: none; }
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .8s ease; pointer-events: none;
+    }
     .slide[aria-hidden="false"] { opacity: 1; pointer-events: auto; }
-    .slide img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+    .slide img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .6s ease;
+      border-radius: 8px;
+    }
     .slide[aria-hidden="false"] img { transform: scale(1.02); }
-    .ctrl { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,.45); color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
-    .ctrl:hover { background: rgba(0,0,0,.6); }
-    .prev { left: 12px; } .next { right: 12px; }
-    .controls { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; gap: 8px; z-index: 12; }
-    .btn.play { background: rgba(0,0,0,.45); color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+    .ctrl {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      z-index: 10;
+      background: rgba(0,0,0,.45); color: #fff;
+      border: none; width: 44px; height: 44px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 2rem;
+      cursor: pointer; box-shadow: 0 2px 6px 0 rgba(0,0,0,0.07);
+      transition: background .2s;
+      outline: none;
+    }
+    .ctrl:hover { background: rgba(0,0,0,.7); }
+    .prev { left: 18px; }
+    .next { right: 18px; }
+    .controls {
+      position: absolute; left: 18px; right: 18px; bottom: 14px;
+      display: flex; justify-content: space-between; gap: 8px;
+      z-index: 12;
+    }
+    .btn.play {
+      background: rgba(0,0,0,.45); color: #fff;
+      border: none; padding: 8px 14px; border-radius: 6px;
+      cursor: pointer; font-size: 1.1rem; letter-spacing: 0.08em;
+      box-shadow: 0 1px 3px 0 rgba(0,0,0,0.08);
+      transition: background .2s;
+    }
     .btn.play[aria-pressed="true"] { background: #007acc; }
     .dots { display: flex; gap: 8px; }
-    .dots button { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.5); border: none; cursor: pointer; }
-    .dots button[aria-selected="true"] { background: #007acc; box-shadow: 0 0 0 3px rgba(0,122,204,.12); }
-    @media (max-width: 480px) { .slideshow { height: 160px; } .ctrl { width: 34px; height: 34px; } }
-    @media (prefers-reduced-motion: reduce) { .slide, .slide img { transition: none !important; transform: none !important; } }
+    .dots button {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: rgba(255,255,255,.5); border: none;
+      cursor: pointer;
+      transition: background .2s, box-shadow .2s;
+    }
+    .dots button[aria-selected="true"] {
+      background: #007acc;
+      box-shadow: 0 0 0 3px rgba(0,122,204,.16);
+    }
+    /* Blog style for code, blockquote, etc. */
+    .blog-content blockquote {
+      border-left: 4px solid #00c6ae;
+      margin: 24px 0;
+      padding: 12px 24px;
+      background: #f6fcfa;
+      color: #444;
+      font-style: italic;
+    }
+    .blog-content img {
+      max-width: 100%;
+      border-radius: 4px;
+      box-shadow: 0 1px 6px rgba(30,36,50,0.06);
+    }
+    .blog-content h2, .blog-content h3 {
+      color: #007acc;
+      margin-top: 2.2em;
+      margin-bottom: 0.7em;
+      font-weight: 600;
+    }
+    .blog-content ul {
+      padding-left: 1.4em;
+      margin-bottom: 1.5em;
+    }
+    .blog-content li {
+      margin-bottom: 0.5em;
+    }
+    @media (max-width: 720px) {
+      .blog-container { max-width: 100%; margin: 0; border-radius: 0; }
+      header.blog-header, .blog-content { padding: 18px; }
+      .slideshow { height: 180px; }
+    }
+    @media (max-width: 500px) {
+      .slideshow { height: 120px; }
+      .ctrl { width: 34px; height: 34px; font-size: 1.4rem; }
+      .controls { left: 6px; right: 6px; }
+      header.blog-header, .blog-content { padding: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .slide, .slide img { transition: none !important; transform: none !important; }
+    }
   </style>
 </head>
 <body>
-
-  <!-- 
-    1. 在專案根目錄建立 assets/ 資料夾 
-    2. 將圖片上傳到 assets/，命名為 image1.jpg、image2.jpg
-  -->
-  <div class="slideshow"
-       aria-roledescription="carousel"
-       aria-label="作品展示"
-       data-autoplay="true"
-       data-interval="4000">
-    <div class="slides" role="list">
-
-      <!-- Slide 1：概念視覺 -->
-      <div class="slide" role="listitem" aria-hidden="false">
-        <!-- data-src 指向 assets/image1.jpg -->
-        <img data-src="assets/image1.jpg" alt="照片一：日本海外實習">
+  <div class="blog-container">
+    <header class="blog-header">
+      <h1 class="blog-title">作品展示幻燈片</h1>
+      <div class="blog-meta">By John &nbsp;|&nbsp; 2025 年 9 月</div>
+    </header>
+    <main class="blog-content">
+      <p>這是一個簡單、響應式且支援鍵盤操作的幻燈片播放器，適合用來在部落格展示你的攝影作品或設計專案。圖片資源請放在 <code>assets/</code> 資料夾，檔名如 <code>image1.jpg</code>、<code>image2.jpg</code>。</p>
+      
+      <blockquote>
+        支援滑鼠、鍵盤、播放/暫停切換與 lazy-load 圖片，適合行動裝置顯示。
+      </blockquote>
+      
+      <div class="slideshow"
+          aria-roledescription="carousel"
+          aria-label="作品展示"
+          data-autoplay="true"
+          data-interval="4000">
+        <div class="slides" role="list">
+          <!-- Slide 1：概念視覺 -->
+          <div class="slide" role="listitem" aria-hidden="false">
+            <img data-src="assets/image1.jpg" alt="照片一：日本海外實習">
+          </div>
+          <!-- Slide 2：界面設計 -->
+          <div class="slide" role="listitem" aria-hidden="true">
+            <img data-src="assets/image2.jpg" alt="照片二：三詩達研究所">
+          </div>
+          <!-- 更多圖片請依此格式新增 -->
+        </div>
+        <button class="ctrl prev" aria-label="上一張">‹</button>
+        <button class="ctrl next" aria-label="下一張">›</button>
+        <div class="controls">
+          <button class="btn play" aria-pressed="false" aria-label="播放/暫停">▶</button>
+          <div class="dots" role="tablist" aria-label="幻燈片導航"></div>
+        </div>
       </div>
-
-      <!-- Slide 2：界面設計 -->
-      <div class="slide" role="listitem" aria-hidden="true">
-        <!-- data-src 指向 assets/image2.jpg -->
-        <img data-src="assets/image2.jpg" alt="照片二：三詩達研究所">
-      </div>
-
-      <!-- 如需更多 slide，請複製上方區塊並修改 data-src 與 alt -->
-    </div>
-
-    <!-- 左右切換按鈕 -->
-    <button class="ctrl prev" aria-label="上一張">‹</button>
-    <button class="ctrl next" aria-label="下一張">›</button>
-
-    <!-- 播放/暫停 與 頁碼導航 -->
-    <div class="controls">
-      <button class="btn play" aria-pressed="false" aria-label="播放/暫停">▶</button>
-      <div class="dots" role="tablist" aria-label="幻燈片導航"></div>
-    </div>
+      
+      <h2>如何新增圖片？</h2>
+      <ul>
+        <li>將圖片放入 <code>assets/</code> 資料夾。</li>
+        <li>依需求複製 <code>&lt;div class="slide"&gt;...&lt;/div&gt;</code> 區塊，修改 <code>data-src</code> 及 <code>alt</code> 屬性。</li>
+      </ul>
+      <h2>功能特色</h2>
+      <ul>
+        <li>自動播放 / 可手動暫停</li>
+        <li>鍵盤方向鍵切換</li>
+        <li>自適應行動裝置尺寸</li>
+        <li>圖片懶加載 (Lazy load)</li>
+        <li>支援無障礙 ARIA 標註</li>
+      </ul>
+      <h2>原始碼說明</h2>
+      <p>下方即為主要幻燈片功能的 JS 程式碼：</p>
+      <pre><code>// 省略，請見原始碼</code></pre>
+    </main>
   </div>
-
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const root = document.querySelector('.slideshow');
@@ -154,6 +293,5 @@
       isPlaying ? play() : pause();
     });
   </script>
-
 </body>
 </html>
